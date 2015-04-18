@@ -21,6 +21,13 @@
 ;; next-action.
   )
 
+(defun org-gtd-task/delegate-it ()
+  (org-deadline '(16 16))
+  (org-todo "WAITING")
+;; There should be a method here that runs a bunch of custom
+;; delgate-it functions.
+  )
+
 (defun org-gtd-task/single-stage-project ()
   (org-entry-put (point) "NEXT_ACTION"
                  (read-from-minibuffer
@@ -29,10 +36,14 @@
   (if (yes-or-no-p "Defer it?")
       (progn
         (org-schedule '(16 16))
-        (org-todo "DEFERRED"))
-    (progn
-      (org-deadline '(16 16))
-      (org-todo "NEXT-ACTION"))))
+        (org-todo "DEFERRED")
+        ;; Move it to the Someday heading
+        )
+    (if (yes-or-no-p "Delegate it?")
+        (org-gtd-task/delegate-it)
+      (progn
+        (org-deadline '(16 16))
+        (org-todo "NEXT-ACTION")))))
 
 (defun org-gtd-task/multi-stage-project ()
   ;; Plan out the occurance to check if it has an outcome and
@@ -49,6 +60,10 @@
       (org-gtd-task/multi-stage-project)
     (org-gtd-task/single-stage-project)))
 
+(defun org-gtd-task/non-actionable-task ()
+  ;; No-op
+  ;; Move this task to Someday
+  )
 
 (defun org-gtd-task-review ()
   (interactive)
@@ -57,7 +72,9 @@
                            " an actionable task? "))
       (if (yes-or-no-p "Will it take less than 2 mins?")
           (message "Do it")
-        (org-gtd-task/long-task))))
+        (org-gtd-task/long-task))
+    (org-gtd-task/non-actionable-task)
+    ))
 
 
 ;; - [ ] Make sure that there are tags on everything.
