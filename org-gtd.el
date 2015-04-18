@@ -76,6 +76,11 @@
     (org-gtd-task/non-actionable-task)
     ))
 
+(defun org-gtd-new-task ()
+  (interactive)
+  (org-insert-todo-heading "TODO")
+  (insert (read-from-minibuffer "What is the action?"))
+  (org-gtd-task-review))
 
 ;; - [ ] Make sure that there are tags on everything.
 (defun org-gtd-review (todo-state)
