@@ -79,26 +79,48 @@
 (defun org-gtd-new-task ()
   (interactive)
   (org-insert-todo-heading "TODO")
-  (insert (read-from-minibuffer "What is the action?"))
+  (insert (concat " " (read-from-minibuffer "What is the action? ")))
   (org-gtd-task-review))
 
+
+(defun org-gtd-review/update-task ()
+  (if cur-todo-state
+      (progn
+        (unless (org-entry-get (point) "OUTCOME")
+          (org-entry-put (point) "OUTCOME"
+                         (read-from-minibuffer (concat cur-title ". Outcome: "))))
+        (unless (org-entry-get (point) "NEXT_ACTION")
+          (org-entry-put (point) "NEXT_ACTION"
+                         (read-from-minibuffer (concat cur-title ". Next Action: "))))))
+  )
+
 ;; - [ ] Make sure that there are tags on everything.
-(defun org-gtd-review (todo-state)
+(defun org-gtd-review ()
   (interactive)
   (org-map-entries
    '(lambda ()
       (let ((cur-todo-state (nth 2 (org-heading-components)))
             (cur-title (nth 4 (org-heading-components))))
         (if cur-todo-state
+            ;; Check to see that it doesn't have both deadline and schedule.
             (progn
-              (unless (org-entry-get (point) "OUTCOME")
-                (org-entry-put (point) "OUTCOME"
-                               (read-from-minibuffer (concat cur-title ". Outcome: "))))
-              (unless (org-entry-get (point) "NEXT_ACTION")
-                (org-entry-put (point) "NEXT_ACTION"
-                               (read-from-minibuffer (concat cur-title ". Next Action: "))))
-              ))))
-      todo-state 'agenda))
+              (if (and (org-get-deadline-time nil)
+                       (org-get-scheduled-time nil))
+                  (if (yes-or-no-p
+                       (concat "\""
+                               cur-title
+                               "\""
+                               " shouldn't have both schedule and deadline."
+                               " Should I remove the schedule?"))
+                      (org-schedule '(4))))))))
+   "-scheduled" ;; Don't want to do anything for scheduled.
+   'agenda)
+  (message "All done"))
+
+;; (defun org-gtd-test ()
+;;   (interactive)
+;;   ))
+
 
   ;; If something is past the deadline review the nextaction and outcome. Update it.
   ;;                            (if (or (eq (org-entry-get (point) "LastReviewed") nil)
