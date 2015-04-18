@@ -94,6 +94,31 @@
                          (read-from-minibuffer (concat cur-title ". Next Action: "))))))
   )
 
+
+(defun org-gtd-review/has-deadline-and-schedule ()
+  (if (and (org-get-deadline-time nil)
+           (org-get-scheduled-time nil))
+      (if (yes-or-no-p
+           (concat "\""
+                   cur-title
+                   "\""
+                   " shouldn't have both schedule and deadline."
+                   " Should I remove the schedule?"))
+          (org-schedule '(4)))))
+
+(defun org-gtd-review/doesnt-have-deadline-and-schedule ()
+  (if (and (not (org-get-deadline-time nil))
+           (not (org-get-scheduled-time nil)))
+      (if (yes-or-no-p
+           (concat "\""
+                   cur-title
+                   "\""
+                   " doesn't have a deadline."
+                   " Add a deadline?"))
+          (org-deadline '(4))
+          (org-schedule '(4)))))
+
+
 ;; - [ ] Make sure that there are tags on everything.
 (defun org-gtd-review ()
   (interactive)
@@ -104,15 +129,9 @@
         (if cur-todo-state
             ;; Check to see that it doesn't have both deadline and schedule.
             (progn
-              (if (and (org-get-deadline-time nil)
-                       (org-get-scheduled-time nil))
-                  (if (yes-or-no-p
-                       (concat "\""
-                               cur-title
-                               "\""
-                               " shouldn't have both schedule and deadline."
-                               " Should I remove the schedule?"))
-                      (org-schedule '(4))))))))
+              (org-gtd-review/has-deadline-and-schedule)
+;;              (org-gtd-review/doesnt-have-deadline-and-schedule)
+              ))))
    "-scheduled" ;; Don't want to do anything for scheduled.
    'agenda)
   (message "All done"))
